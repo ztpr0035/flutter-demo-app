@@ -14,13 +14,14 @@ class Todo {
   final String sessionId;
   Todo(this.status, this.sessionId);
 }
+
 class LoginPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => new _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-   bool pressed = true;
+  bool pressed = true;
   API obj = new API();
   GetApi ob = new GetApi();
   bool _obscureText = true;
@@ -30,17 +31,20 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<String> postData(String email, String pass) async {
     var data = json.encode({'username': email, 'password': pass});
-     print("Response body: ${data}");
+    print("Response body: ${data}");
     await http
         .post(
       Uri.encodeFull('http://18.224.154.163:4000/user/login'),
-      headers: {'Content-Type': 'application/json', "Accept": "application/json"},
+      headers: {
+        'Content-Type': 'application/json',
+        "Accept": "application/json"
+      },
       body: data,
     )
         .then((http.Response response) {
       if (response.statusCode == 200) {
         Navigator.of(context).pushNamed('/home');
-                     } else {
+      } else {
         throw Exception('Failed to load');
       }
     });
@@ -57,60 +61,66 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-Future<void> login() async{
-  // pressed =false;
-  var todo2 = { "sessionId" : "", "accessToken" : "" };
-  var accessToken;
-  var data = json.encode({'loginName': _email, 'password': _password});
-  final form = formKey.currentState;
+  Future<void> login() async {
+    // pressed =false;
+    var todo2 = {"sessionId": "", "accessToken": ""};
+    var accessToken;
+    var data = json.encode({'loginName': _email, 'password': _password});
+    final form = formKey.currentState;
     print("Rdata: ${data}");
-  if(form.validate()){
-    form.save();
-    try {
+    if (form.validate()) {
+      form.save();
+      try {
         await http
-        .post(
-      Uri.encodeFull('https://cloudapps.services/rest/api/login?loginName=${_email}&password=${_password}&output=json'),
-      headers: {'Content-Type': 'application/json'},
-      body: data,
-    )
-        .then((http.Response response,) {
-      if (response.statusCode == 200) {
-        var body = json.decode(response.body);
-          todo2['sessionId'] = body['sessionId'];
-          // start
-                http
-                  .post(
-                Uri.encodeFull('https://backend.cloudapps.services:7561/v1/test_db/oauth/token'),
-                headers: {},
-                body: {
-                    "grant_type": "password",
-                    "password": _password,
-                    "username": _email
-                },
-              )
-                  .then((http.Response response,) {
-                if (response.statusCode == 200) {
-                    accessToken = json.decode(response.body)['Result']['access_token'];
-                    todo2['accessToken'] = accessToken;
-                    pressed = true;
-                    Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                          builder: (context) => HomePage(todo1 : todo2),
-                          ),
-                        );
-                }
-              });
-          // end
-                     } else {
-        throw Exception('Failed to load');
+            .post(
+          Uri.encodeFull(
+              'https://cloudapps.services/rest/api/login?loginName=${_email}&password=${_password}&output=json'),
+          headers: {'Content-Type': 'application/json'},
+          body: data,
+        )
+            .then((
+          http.Response response,
+        ) {
+          if (response.statusCode == 200) {
+            var body = json.decode(response.body);
+            todo2['sessionId'] = body['sessionId'];
+            // start
+            http.post(
+              Uri.encodeFull(
+                  'https://backend.cloudapps.services:7561/v1/test_db/oauth/token'),
+              headers: {},
+              body: {
+                "grant_type": "password",
+                "password": _password,
+                "username": _email
+              },
+            ).then((
+              http.Response response,
+            ) {
+              if (response.statusCode == 200) {
+                accessToken =
+                    json.decode(response.body)['Result']['access_token'];
+                todo2['accessToken'] = accessToken;
+                pressed = true;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomePage(todo1: todo2),
+                  ),
+                );
+              }
+            });
+            // end
+          } else {
+            throw Exception('Failed to load');
+          }
+        });
+      } catch (e) {
+        print(e.message);
       }
-    });
-    } catch (e) {
-      print(e.message);
     }
   }
-}
+
   final logo = Image.asset(
     'images/fork.png',
     width: 100.0,
@@ -121,19 +131,16 @@ Future<void> login() async{
   Widget build(BuildContext context) {
     // pressed = true;
     return new Scaffold(
-      body: new Stack(
-          children: <Widget>[
-            
-            // _progressHUD,
+        body: new Stack(children: <Widget>[
+      // _progressHUD,
       new Container(
         padding: EdgeInsets.fromLTRB(16.0, 120.0, 16.0, 16.0),
         child: new Form(
           key: formKey,
           child: new Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children:
-             <Widget>[
-             // _progressHUD,
+            children: <Widget>[
+              // _progressHUD,
               new TextFormField(
                 keyboardType: TextInputType.emailAddress,
                 // initialValue: 'abc@gmail.com',
@@ -141,7 +148,7 @@ Future<void> login() async{
                   labelText: 'EMAIL',
                   labelStyle: new TextStyle(
                       color: Colors.grey,
-                       fontSize: 16.0,
+                      fontSize: 16.0,
                       fontWeight: FontWeight.bold),
                   fillColor: Colors.grey[50].withOpacity(0.6),
                   filled: true,
@@ -204,31 +211,57 @@ Future<void> login() async{
                 onSaved: (value) => _password = value,
               ),
               SizedBox(height: 20.0),
-              new RaisedButton(
-                color: Colors.indigo,
-                child: new Text(
-                  pressed ? 'Signin' : 'Signing in...' ,
-                  style: TextStyle(
-                    color: Colors.white,
-                    
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.bold,
+              new GestureDetector(
+                onTap: () {
+                  login();
+                  setState(() => {pressed = false});
+                },
+                child: Container(
+                  width: 320.0,
+                  height: 60.0,
+                  alignment: FractionalOffset.center,
+                  decoration: new BoxDecoration(
+                    color: Colors.indigo,
+                    borderRadius:
+                        new BorderRadius.all(const Radius.circular(30.0)),
+                  ),
+                  child: new Text(
+                    pressed ? 'Sign in' : 'Signing in...',
+                    style: new TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 0.3,
+                    ),
                   ),
                 ),
-                 //onPressed: validateAndSave,
-                onPressed: ()=>{login(), setState(()=>{
-                  pressed =false
-                })}
-                ,
               ),
-              SizedBox(height: 20.0),
-              // SizedBox(width: 15.0),
              
             ],
           ),
         ),
-      )]
       )
-    );
+    ]));
   }
 }
+
+// new RaisedButton(
+//   color: Colors.indigo,
+
+//   child:
+//   new Text(
+//     pressed ? 'Signin' : 'Signing in...' ,
+//     style: TextStyle(
+//       color: Colors.white,
+//       fontFamily: 'Montserrat',
+//       fontWeight: FontWeight.bold,
+//        letterSpacing: 0.3,
+//     ),
+
+//   ),
+//    //onPressed: validateAndSave,
+//   onPressed: ()=>{login(), setState(()=>{
+//     pressed =false
+//   })}
+//   ,
+// ),
